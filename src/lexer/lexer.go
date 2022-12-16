@@ -1,7 +1,7 @@
 package lexer
 
 import (
-	"goMokeney/src/pkg/token"
+	"goMokeney/src/token"
 )
 
 type Lexer struct {
@@ -33,7 +33,13 @@ func (l *Lexer) NextToken() token.Token {
 	l.skipCarriage()
 	switch l.ch {
 	case '=':
-		tok = newToken(token.ASSIGN, l.ch)
+		if l.peekChar() == '='{
+			ch := l.ch
+			l.readChar()
+			tok = newTokenStr(token.EQ, string(ch)+string(l.ch))
+		}else {
+			tok = newToken(token.ASSIGN, l.ch)
+		}
 	case ';':
 		tok = newToken(token.SEMICOLON, l.ch)
 	case '(':
@@ -48,6 +54,24 @@ func (l *Lexer) NextToken() token.Token {
 		tok = newToken(token.LBRACE, l.ch)
 	case '}':
 		tok = newToken(token.RBRACE, l.ch)
+	case '!':
+		if l.peekChar() == '='{
+			ch := l.ch
+			l.readChar()
+			tok = newTokenStr(token.NOT_EQ, string(ch)+string(l.ch))
+		}else {
+			tok = newToken(token.BANG, l.ch)
+		}
+	case '-':
+		tok = newToken(token.MINUS, l.ch)
+	case '/':
+		tok = newToken(token.SLASH, l.ch)
+	case '*':
+		tok = newToken(token.ASTERISK, l.ch)
+	case '<':
+		tok = newToken(token.LT, l.ch)
+	case '>':
+		tok = newToken(token.GT, l.ch)
 	case 0:
 		tok.Literal = ""
 		tok.Type = token.EOF
@@ -66,6 +90,10 @@ func (l *Lexer) NextToken() token.Token {
 	}
 	l.readChar()
 	return tok
+}
+
+func newTokenStr(tokenType token.TokenType, ch string) token.Token{
+	return token.Token{Type: tokenType, Literal: ch}
 }
 
 func newToken(tokenType token.TokenType, ch byte) token.Token {
@@ -105,5 +133,13 @@ func  (l *Lexer) skipWhiteSpace(){
 func  (l *Lexer) skipCarriage(){
 	for l.ch == '\n' || l.ch=='\t'{
 		l.readChar()
+	}
+}
+
+func  (l *Lexer) peekChar() byte{
+	if l.readPosition >= len(l.input){
+		return 0
+	}else{
+		return l.input[l.readPosition]
 	}
 }
